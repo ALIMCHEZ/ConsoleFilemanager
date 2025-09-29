@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ConsoleFilemanager.Core.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace ConsoleFilemanager.Services
 {
-    internal interface IFileService
+    internal interface IFileSystemObjectService
     {
-        Task<List<string>> GetFilesAsync(string path);
+        Task<List<FileSystemObject>> GetFilesAsync(string path);
         Task DeleteAsync(string path);
     }
 }
