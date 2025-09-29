@@ -9,26 +9,26 @@ namespace ConsoleFilemanager.Core.Models
 {
     internal class FileSystemObject
     {
-        private string _path;
-        public required string Path    
+        private FileSystemInfo _fileInfo;
+        public required FileSystemInfo FileInfo    
         {
-            get => _path;
+            get => _fileInfo;
             init
             {
-                if (string.IsNullOrEmpty(value))
+                if (value.Equals(null))
                     throw new ArgumentNullException(nameof(value));
                 else
                 {
-                    _path = value;
+                    _fileInfo = value;
                 }
             }
         }
 
         public readonly FileSystemObjectType Type;
 
-        public FileSystemObject(string fileSystemObjectPath)
+        public FileSystemObject()
         {
-            Path = fileSystemObjectPath;
+
         }
     }
 }
