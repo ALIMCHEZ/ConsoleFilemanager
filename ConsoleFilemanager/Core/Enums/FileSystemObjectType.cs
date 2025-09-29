@@ -1,0 +1,5 @@
+﻿enum FileSystemObjectType
+{
+    File,
+    Directory
+}
