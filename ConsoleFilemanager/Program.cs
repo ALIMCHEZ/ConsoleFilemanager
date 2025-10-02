@@ -1,10 +1,14 @@
-﻿namespace ConsoleFilemanager
+﻿using ConsoleFilemanager.Services;
+using ConsoleFilemanager.UI;
+
+namespace ConsoleFilemanager
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            UserInterface ui = new UserInterface();
+            await ui.RunAsync("C:\\Users\\5\\Documents");
         }
     }
 }
