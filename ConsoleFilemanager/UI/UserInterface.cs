@@ -15,6 +15,7 @@ namespace ConsoleFilemanager.UI
         private List<FileSystemObject> fileSystemObjects { get; set; }
 
         private StringBuilder _strBuilder;
+        private int selectIndex = 0;
         
         private string _startFolder;
         public string StartFolder
@@ -28,18 +29,37 @@ namespace ConsoleFilemanager.UI
             }
         }
 
-
-
-        public UserInterface(string startFolder)
+        private async Task Init(string startFolder)
         {
             StartFolder = startFolder;
             _objectService = new FileSystemObjectService();
-            fileSystemObjects = _objectService.GetFilesAsync(_startFolder).Result;
-            BuilUi();
+            fileSystemObjects = await _objectService.GetFilesAsync(_startFolder);
+
+        }
+
+        public async Task RunAsync(string startFolder)
+        {
+            await Init(startFolder);
+
+            await Task.Delay(50);
+
+            while (true)
+            {
+                BuilUi();
+
+                if (Console.KeyAvailable)
+                {
+                    var key = Console.ReadKey(true);
+                    await HandleButton(key);
+                }
+
+                await Task.Delay(50);
+            }
         }
 
         private void BuilUi()
         {
+            Console.Clear();
             BuildCurrentfolderWindow();
             BuildFilesWindow();
         }
@@ -55,9 +75,12 @@ namespace ConsoleFilemanager.UI
             }
             _strBuilder.Append("+");
             Console.WriteLine(_strBuilder.ToString());
-            foreach (var file in fileSystemObjects)
+            for (int i = 0; i<fileSystemObjects.Count; i++)
             {
-                Console.WriteLine("|"+file.FileInfo.Name+new string(' ', max - file.FileInfo.Name.Length)+"|");
+                if (i==selectIndex)
+                    Console.BackgroundColor = ConsoleColor.Red;
+                Console.WriteLine("|" + fileSystemObjects[i].FileInfo.Name+new string(' ', max - fileSystemObjects[i].FileInfo.Name.Length)+"|");
+                Console.BackgroundColor = ConsoleColor.Black;
             }
             Console.WriteLine(_strBuilder.ToString());
         }
@@ -73,7 +96,25 @@ namespace ConsoleFilemanager.UI
             }
             _strBuilder.Append("+");
             Console.WriteLine(_strBuilder.ToString());
-            Console.WriteLine("|" + _startFolder+ new string(' ', max - _startFolder.Length)+"|");
+            Console.WriteLine("|" + _startFolder+ new string(' ', Math.Abs(max - _startFolder.Length))+"|");
+        }
+
+        private async Task HandleButton(ConsoleKeyInfo key)
+        {
+            switch (key.Key)
+            {
+                case ConsoleKey.UpArrow:
+                    if (selectIndex > 0) selectIndex--;
+                    break;
+
+                case ConsoleKey.DownArrow:
+                    if (fileSystemObjects.Count  > selectIndex + 1) selectIndex++;
+                    break;
+                case ConsoleKey.Enter:
+                    if (fileSystemObjects[selectIndex].FileInfo as DirectoryInfo != null)
+                        await Init(fileSystemObjects[selectIndex].FileInfo.FullName);
+                            break;
+            }
         }
     }
 }
