@@ -19,6 +19,11 @@ namespace ConsoleFilemanager.UI
         
         private string _startFolder;
 
+        private const int WINDOW_WIDTH = 100;
+        private const int WINDOW_HEIGHT = 30;
+        private const int LIST_START_ROW = 5;
+        private const int LIST_END_ROW = 25;
+
         private bool rebuild = true;
         public string StartFolder
         {
@@ -41,8 +46,9 @@ namespace ConsoleFilemanager.UI
 
         public async Task RunAsync(string startFolder)
         {
+            Console.SetWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+            Console.SetBufferSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-           
             await Init(startFolder);
 
             await Task.Delay(50);
@@ -51,7 +57,10 @@ namespace ConsoleFilemanager.UI
             {
                 if (rebuild)
                 {
-                    BuilUi();
+                    Console.Clear();
+                    await Task.Delay(50);
+                    BuildCurrentfolderWindow();
+                    BuildFilesWindow();
                     rebuild = false;
                 }
 
@@ -66,11 +75,6 @@ namespace ConsoleFilemanager.UI
             }
         }
 
-        private void BuilUi()
-        {
-            BuildCurrentfolderWindow();
-            BuildFilesWindow();
-        }
 
         private void BuildFilesWindow()
         {
@@ -84,8 +88,14 @@ namespace ConsoleFilemanager.UI
             }
             _strBuilder.Append("+");
             Console.WriteLine(_strBuilder.ToString());
-            for (int i = 0; i<fileSystemObjects.Count; i++)
+            int offset = selectIndex >= 25 ? selectIndex - 24:0;
+            for (int i = 0 + offset; i<LIST_END_ROW + offset; i++)
             {
+                if (i > fileSystemObjects.Count)
+                {
+                    Console.WriteLine("|" + new string(' ', max) + "|");
+                    continue;
+                }
                 if (i==selectIndex)
                     Console.BackgroundColor = ConsoleColor.Red;
                 Console.WriteLine("|" + fileSystemObjects[i].FileInfo.Name+new string(' ', max - fileSystemObjects[i].FileInfo.Name.Length)+"|");
@@ -96,7 +106,6 @@ namespace ConsoleFilemanager.UI
 
         private void BuildCurrentfolderWindow()
         {
-            Console.Clear();
             var max = fileSystemObjects.Max(fs => fs.FileInfo.Name.Length);
             _strBuilder.Clear();
             _strBuilder.Append("+");
@@ -104,9 +113,9 @@ namespace ConsoleFilemanager.UI
             {
                 _strBuilder.Append("-");
             }
-            _strBuilder.Append("+");
-            Console.WriteLine(_strBuilder.ToString());
-            Console.WriteLine("|" + _startFolder+ new string(' ', Math.Abs(max - _startFolder.Length))+"|");
+            _strBuilder.AppendLine("+");
+            _strBuilder.Append("|" + _startFolder + new string(' ', Math.Abs(max - _startFolder.Length)) + "|");
+            Console.WriteLine(_strBuilder.ToString());          
         }
 
         private async Task HandleButton(ConsoleKeyInfo key)
@@ -114,23 +123,33 @@ namespace ConsoleFilemanager.UI
             switch (key.Key)
             {
                 case ConsoleKey.UpArrow:
-                    if (selectIndex > 0) selectIndex--;
-                    rebuild = true;
+                    if (selectIndex > 0)
+                    {
+                        selectIndex--;
+                        rebuild = true;
+                    }
                     break;
 
                 case ConsoleKey.DownArrow:
-                    if (fileSystemObjects.Count  > selectIndex + 1) selectIndex++;
-                    rebuild = true;
+                    if (fileSystemObjects.Count > selectIndex + 1)
+                    {
+                        selectIndex++;
+                        rebuild = true;
+                    }
                     break;
                 case ConsoleKey.Enter:
                     if (fileSystemObjects[selectIndex].FileInfo as DirectoryInfo != null)
+                    {
                         await Init(fileSystemObjects[selectIndex].FileInfo.FullName);
-                    rebuild = true;
+                        rebuild = true;
+                    }
                     break;
                 case ConsoleKey.Backspace:
                     var dir = new DirectoryInfo(_startFolder);
-                    if (dir?.Parent!=null) 
+                    if (dir?.Parent != null)
+                    {
                         await Init(dir.Parent.FullName);
+                    }
                     rebuild = true;
                     break;
             }
