@@ -14,6 +14,8 @@ namespace ConsoleFilemanager.UI
         private FileSystemObjectService _objectService = new FileSystemObjectService();
         private List<FileSystemObject> fileSystemObjects { get; set; }
 
+        private List<FileSystemObject> currentFiles { get; set; }
+
         private StringBuilder _strBuilder = new StringBuilder();
         private int selectIndex = 0;
         
@@ -23,6 +25,7 @@ namespace ConsoleFilemanager.UI
         private const int WINDOW_HEIGHT = 30;
         private const int LIST_START_ROW = 5;
         private const int LIST_END_ROW = 25;
+        private const int FILES_WINDOW_WIDTH = 50;
 
         private bool rebuild = true;
         public string StartFolder
@@ -61,6 +64,7 @@ namespace ConsoleFilemanager.UI
                     await Task.Delay(50);
                     BuildCurrentfolderWindow();
                     BuildFilesWindow();
+                    BuildFileinfoWondow();
                     rebuild = false;
                 }
 
@@ -78,44 +82,65 @@ namespace ConsoleFilemanager.UI
 
         private void BuildFilesWindow()
         {
-
-            var max = fileSystemObjects.Max(f => f.FileInfo.Name.Length);
             _strBuilder.Clear();
             _strBuilder.Append("+");
-            for (int i = 0; i < max; i++)
+            for (int i = 0; i < FILES_WINDOW_WIDTH; i++)
             {
                 _strBuilder.Append("-");
             }
-            _strBuilder.Append("+");
-            Console.WriteLine(_strBuilder.ToString());
-            int offset = selectIndex >= 25 ? selectIndex - 24:0;
+            _strBuilder.AppendLine("+");
+            int offset = selectIndex >= LIST_END_ROW ? selectIndex - LIST_END_ROW +1: 0;
             for (int i = 0 + offset; i<LIST_END_ROW + offset; i++)
             {
-                if (i > fileSystemObjects.Count)
+                if (i >=fileSystemObjects.Count)
                 {
-                    Console.WriteLine("|" + new string(' ', max) + "|");
+                    _strBuilder.AppendLine("|" + new string(' ', FILES_WINDOW_WIDTH) + "|");
                     continue;
                 }
-                if (i==selectIndex)
-                    Console.BackgroundColor = ConsoleColor.Red;
-                Console.WriteLine("|" + fileSystemObjects[i].FileInfo.Name+new string(' ', max - fileSystemObjects[i].FileInfo.Name.Length)+"|");
-                Console.BackgroundColor = ConsoleColor.Black;
+                if (i == selectIndex)
+                {
+                    _strBuilder.AppendLine("\u001b[41m|" + fileSystemObjects[i].FileInfo.Name + new string(' ', FILES_WINDOW_WIDTH - fileSystemObjects[i].FileInfo.Name.Length-1) + "|\u001b[0m");
+                }
+                else
+                {
+                    _strBuilder.AppendLine("|" + fileSystemObjects[i].FileInfo.Name + new string(' ', FILES_WINDOW_WIDTH - fileSystemObjects[i].FileInfo.Name.Length) + "|");
+                }
             }
+            _strBuilder.Append("+" + new string('-', FILES_WINDOW_WIDTH-1) + "+");
             Console.WriteLine(_strBuilder.ToString());
         }
 
         private void BuildCurrentfolderWindow()
         {
-            var max = fileSystemObjects.Max(fs => fs.FileInfo.Name.Length);
             _strBuilder.Clear();
             _strBuilder.Append("+");
-            for (int i = 0; i < max; i++)
+            for (int i = 0; i < WINDOW_WIDTH; i++)
             {
                 _strBuilder.Append("-");
             }
             _strBuilder.AppendLine("+");
-            _strBuilder.Append("|" + _startFolder + new string(' ', Math.Abs(max - _startFolder.Length)) + "|");
+            _strBuilder.Append("|" + _startFolder + new string(' ', Math.Abs(WINDOW_WIDTH - _startFolder.Length)) + "|");
             Console.WriteLine(_strBuilder.ToString());          
+        }
+        
+        private void BuildFileinfoWondow()
+        {
+            _strBuilder.Clear();
+            _strBuilder.Append("+");
+            for (int i = 0; i < FILES_WINDOW_WIDTH; i++)
+            {
+                _strBuilder.Append("-");
+            }
+            _strBuilder.Append("+");
+            Console.SetCursorPosition(FILES_WINDOW_WIDTH, 2);
+            Console.WriteLine(_strBuilder.ToString());
+            for (int i = 0; i < LIST_END_ROW; i++)
+            {
+                Console.SetCursorPosition(FILES_WINDOW_WIDTH, 3 + i);
+                Console.WriteLine("|" + new string(' ', FILES_WINDOW_WIDTH) + "|");
+            }
+            Console.SetCursorPosition(FILES_WINDOW_WIDTH, 28);
+            Console.WriteLine("+" + new string('-', FILES_WINDOW_WIDTH) + "+");
         }
 
         private async Task HandleButton(ConsoleKeyInfo key)
